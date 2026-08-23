@@ -1,0 +1,48 @@
+Combat Job Settings v0.1.0 公開手順
+====================================
+
+【1】GitHubで新規リポジトリを作る
+名前：CombatJobSettings
+公開設定：Public
+
+【2】このZIPの中身をリポジトリ直下へアップロード
+.gitignore
+README.md
+CHANGELOG.md
+pluginmaster.json
+source フォルダ
+make_release_zip.bat
+
+【3】Release用ZIPを作る
+GitHubへ上げる前でも後でもOKです。
+
+1. source\build.bat を実行
+2. ビルド成功後、このフォルダの make_release_zip.bat を実行
+3. CombatJobSettings_v0.1.0.zip ができる
+
+【4】GitHub Releaseを作る
+右側 Releases → Create a new release
+Tag：v0.1.0
+Release title：Combat Job Settings v0.1.0
+
+添付ファイル：
+CombatJobSettings_v0.1.0.zip
+
+Publish release を押す。
+
+【5】Custom Repositoryを確認
+URL：
+https://raw.githubusercontent.com/elpapityo/CombatJobSettings/main/pluginmaster.json
+
+Dalamud設定 → 試験的機能 → カスタムプラグインリポジトリへ追加。
+保存後、/xlplugins で「Combat Job Settings」を検索。
+
+【6】最終確認
+・一覧に表示される
+・インストールできる
+・/cjs で起動する
+・更新リンクエラーが出ない
+
+※ pluginmaster.json はPTBattleLogと同じ方式です。
+※ GitHubのタグ名は必ず v0.1.0 にしてください。
+※ Release ZIP名は必ず CombatJobSettings_v0.1.0.zip にしてください。
