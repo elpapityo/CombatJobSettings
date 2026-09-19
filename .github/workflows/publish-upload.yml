@@ -1,0 +1,103 @@
+name: Publish Combat Job Settings upload
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select uploaded package
+        id: pkg
+        shell: bash
+        run: |
+          ZIP=$(find upload -maxdepth 1 -type f -name 'CombatJobSettings_v*.zip' | sort -V | tail -n 1 || true)
+          if [ -z "$ZIP" ]; then
+            echo "No upload ZIP found."
+            exit 1
+          fi
+          FILE=$(basename "$ZIP")
+          VERSION=${FILE#CombatJobSettings_v}
+          VERSION=${VERSION%.zip}
+          TAG="v${VERSION}"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package and version
+        shell: bash
+        env:
+          ZIP: ${{ steps.pkg.outputs.zip }}
+          VERSION: ${{ steps.pkg.outputs.version }}
+        run: |
+          set -euo pipefail
+          test -s "$ZIP"
+          unzip -l "$ZIP" | grep -q 'CombatJobSettings.dll'
+          unzip -l "$ZIP" | grep -q 'CombatJobSettings.json'
+          unzip -p "$ZIP" CombatJobSettings.json > /tmp/CombatJobSettings.json
+          python3 - <<'PY'
+          import json, os
+          with open('/tmp/CombatJobSettings.json', encoding='utf-8-sig') as f:
+              manifest = json.load(f)
+          expected = os.environ['VERSION'] + '.0'
+          actual = manifest.get('AssemblyVersion')
+          if actual != expected:
+              raise SystemExit(f'AssemblyVersion mismatch: ZIP={actual!r}, filename={expected!r}')
+          print(f'Verified AssemblyVersion: {actual}')
+          PY
+
+      - name: Sync pluginmaster to uploaded version
+        shell: bash
+        env:
+          VERSION: ${{ steps.pkg.outputs.version }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          version = os.environ['VERSION']
+          path = Path('pluginmaster.json')
+          data = json.loads(path.read_text(encoding='utf-8-sig'))
+          if not isinstance(data, list) or not data:
+              raise SystemExit('pluginmaster.json must contain a non-empty JSON array')
+          entry = data[0]
+          assembly = f'{version}.0'
+          url = f'https://github.com/elpapityo/CombatJobSettings/releases/download/v{version}/CombatJobSettings_v{version}.zip'
+          entry['AssemblyVersion'] = assembly
+          entry['DownloadLinkInstall'] = url
+          entry['DownloadLinkUpdate'] = url
+          entry['DownloadLinkTesting'] = url
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(f'Synced pluginmaster.json -> {assembly}')
+          PY
+          if ! git diff --quiet -- pluginmaster.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pluginmaster.json
+            git commit -m "Sync pluginmaster for v${VERSION}"
+            git push
+          else
+            echo "pluginmaster.json already matches v${VERSION}."
+          fi
+
+      - name: Create or replace release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="${{ steps.pkg.outputs.tag }}"
+          ZIP="${{ steps.pkg.outputs.zip }}"
+          VERSION="${{ steps.pkg.outputs.version }}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "Combat Job Settings v${VERSION}" --notes-file CHANGELOG.md
+          else
+            gh release create "$TAG" "$ZIP" --repo "$GITHUB_REPOSITORY" --title "Combat Job Settings v${VERSION}" --notes-file CHANGELOG.md
+          fi
