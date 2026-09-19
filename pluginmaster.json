@@ -5,7 +5,7 @@
     "Punchline": "戦闘系プラグインの設定を一括管理。JOB・ロール・プリセット切替に対応。",
     "Description": "BossMod / BossMod Reborn / Rotation Solver Reborn / Wrath Combo の主要戦闘設定をまとめて確認・変更し、JOB・ロール・名前付きプリセットとして保存できます。",
     "InternalName": "CombatJobSettings",
-    "AssemblyVersion": "0.1.0.0",
+    "AssemblyVersion": "0.1.1.0",
     "RepoUrl": "https://github.com/elpapityo/CombatJobSettings",
     "ApplicableVersion": "any",
     "Tags": [
@@ -15,9 +15,9 @@
       "preset"
     ],
     "DalamudApiLevel": 15,
-    "DownloadLinkInstall": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.0/CombatJobSettings_v0.1.0.zip",
-    "DownloadLinkUpdate": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.0/CombatJobSettings_v0.1.0.zip",
-    "DownloadLinkTesting": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.0/CombatJobSettings_v0.1.0.zip",
+    "DownloadLinkInstall": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.1/CombatJobSettings_v0.1.1.zip",
+    "DownloadLinkUpdate": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.1/CombatJobSettings_v0.1.1.zip",
+    "DownloadLinkTesting": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.1/CombatJobSettings_v0.1.1.zip",
     "IsHide": false,
     "IsTestingExclusive": false
   }
