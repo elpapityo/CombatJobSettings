@@ -19,6 +19,7 @@
     "DownloadLinkUpdate": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.1/CombatJobSettings_v0.1.1.zip",
     "DownloadLinkTesting": "https://github.com/elpapityo/CombatJobSettings/releases/download/v0.1.1/CombatJobSettings_v0.1.1.zip",
     "IsHide": false,
-    "IsTestingExclusive": false
+    "IsTestingExclusive": false,
+    "IconUrl": "https://raw.githubusercontent.com/elpapityo/CombatJobSettings/main/images/icon.png"
   }
 ]
