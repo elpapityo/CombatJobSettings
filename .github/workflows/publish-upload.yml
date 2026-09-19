@@ -2,6 +2,10 @@ name: Publish Combat Job Settings upload
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'upload/CombatJobSettings_[vV]*.zip'
+      - '.github/workflows/publish-upload.yml'
 
 permissions:
   contents: write
@@ -17,16 +21,21 @@ jobs:
         id: pkg
         shell: bash
         run: |
-          ZIP=$(find upload -maxdepth 1 -type f -name 'CombatJobSettings_v*.zip' | sort -V | tail -n 1 || true)
+          ZIP=$(find upload -maxdepth 1 -type f \( -name 'CombatJobSettings_v*.zip' -o -name 'CombatJobSettings_V*.zip' \) | sort -V | tail -n 1 || true)
           if [ -z "$ZIP" ]; then
             echo "No upload ZIP found."
             exit 1
           fi
           FILE=$(basename "$ZIP")
-          VERSION=${FILE#CombatJobSettings_v}
+          VERSION=${FILE#CombatJobSettings_}
           VERSION=${VERSION%.zip}
+          VERSION=${VERSION#v}
+          VERSION=${VERSION#V}
           TAG="v${VERSION}"
+          NORMALIZED="/tmp/CombatJobSettings_v${VERSION}.zip"
+          cp "$ZIP" "$NORMALIZED"
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "normalized=$NORMALIZED" >> "$GITHUB_OUTPUT"
           echo "file=$FILE" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -93,7 +102,7 @@ jobs:
         shell: bash
         run: |
           TAG="${{ steps.pkg.outputs.tag }}"
-          ZIP="${{ steps.pkg.outputs.zip }}"
+          ZIP="${{ steps.pkg.outputs.normalized }}"
           VERSION="${{ steps.pkg.outputs.version }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$ZIP" --clobber --repo "$GITHUB_REPOSITORY"
