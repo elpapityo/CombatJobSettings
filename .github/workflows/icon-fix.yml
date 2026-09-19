@@ -1,0 +1,41 @@
+name: Fix Combat Job Settings icon
+
+on:
+  push:
+    paths:
+      - '.github/workflows/icon-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-icon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract icon and update pluginmaster
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP=$(find upload -maxdepth 1 -type f \( -name 'CombatJobSettings_v*.zip' -o -name 'CombatJobSettings_V*.zip' \) | sort -V | tail -n 1)
+          test -n "$ZIP"
+          mkdir -p images
+          unzip -p "$ZIP" images/icon.png > images/icon.png
+          test -s images/icon.png
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('pluginmaster.json')
+          data=json.loads(p.read_text(encoding='utf-8-sig'))
+          data[0]['IconUrl']='https://raw.githubusercontent.com/elpapityo/CombatJobSettings/main/images/icon.png'
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/icon.png pluginmaster.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Add plugin icon and IconUrl"
+            git push
+          fi
